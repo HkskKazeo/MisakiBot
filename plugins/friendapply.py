@@ -1,6 +1,8 @@
 from nonebot import on_request, RequestSession
 from nonebot import on_notice, NoticeSession
+import sqlite3
 
+sqlconn = sqlite3.connect('C:\CQ\酷Q Pro\MltdBot.db')
 
 @on_request('friend')
 async def _(session: RequestSession):
@@ -10,15 +12,18 @@ async def _(session: RequestSession):
     await session.reject('验证错误')
 
 
-@on_request('group')
-async def _(session: RequestSession):
-    if session.ctx['sub_type'] == 'invite':
-        await session.reject('test')
-
-
 @on_notice('group_increase')
 async def _(session: NoticeSession):
-    bot = session.bot
-    await bot.send_group_msg(group_id = 601031845, message = 'success')
     if session.ctx['user_id'] == session.ctx['self_id']:
-        await  bot.send_group_msg(group_id = 601031845, message = 'isme')
+        global sqlconn
+        sqlconn.cursor().execute('INSERT INTO GroupInfo (GroupCode, IfPush) VALUES (?, ?)', (session.ctx['group_id'], True))
+        sqlconn.commit()
+
+
+@on_notice('group_decrease')
+async def _(session: NoticeSession):
+    if session.ctx['user_id'] == session.ctx['self_id']:
+        global sqlconn
+        sqlconn.cursor().execute('DELETE FROM GroupInfo WHERE GroupCode = ?', (session.ctx['group_id'],))
+        sqlconn.commit()
+
