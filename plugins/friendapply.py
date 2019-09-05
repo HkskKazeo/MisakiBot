@@ -1,6 +1,7 @@
 from nonebot import on_request, RequestSession
 from nonebot import on_notice, NoticeSession
 import sqlite3
+import aiohttp
 
 sqlconn = sqlite3.connect('C:\CQ\酷Q Pro\MltdBot.db')
 
@@ -18,6 +19,8 @@ async def _(session: NoticeSession):
         global sqlconn
         sqlconn.cursor().execute('INSERT INTO GroupInfo (GroupCode, IfPush) VALUES (?, ?)', (session.ctx['group_id'], True))
         sqlconn.commit()
+        async with aiohttp.request('GET', 'https://api.matsurihi.me/mltd/v1/events') as resp:
+            json = await resp.json()
 
 
 @on_notice('group_decrease')
