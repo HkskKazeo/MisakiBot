@@ -3,8 +3,6 @@ from nonebot import on_notice, NoticeSession
 import sqlite3
 import aiohttp
 
-sqlconn = sqlite3.connect('C:\CQ\酷Q Pro\MltdBot.db')
-
 @on_request('friend')
 async def _(session: RequestSession):
     if session.ctx['comment'] == '765':

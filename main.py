@@ -1,7 +1,7 @@
 from os import  path
 import nonebot
-
 import config  #设置
+
 
 if __name__ == '__main__':
     nonebot.init(config)
