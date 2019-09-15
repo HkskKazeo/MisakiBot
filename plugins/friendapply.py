@@ -3,6 +3,7 @@ from nonebot import on_notice, NoticeSession
 import sqlite3
 import aiohttp
 
+
 @on_request('friend')
 async def _(session: RequestSession):
     if session.ctx['comment'] == '765':
@@ -14,7 +15,7 @@ async def _(session: RequestSession):
 @on_notice('group_increase')
 async def _(session: NoticeSession):
     if session.ctx['user_id'] == session.ctx['self_id']:
-        global sqlconn
+        sqlconn = sqlite3.connect('MltdBot.db')
         sqlconn.cursor().execute('INSERT INTO GroupInfo (GroupCode, IfPush) VALUES (?, ?)', (session.ctx['group_id'], True))
         sqlconn.commit()
         async with aiohttp.request('GET', 'https://api.matsurihi.me/mltd/v1/events') as resp:
@@ -24,7 +25,7 @@ async def _(session: NoticeSession):
 @on_notice('group_decrease')
 async def _(session: NoticeSession):
     if session.ctx['user_id'] == session.ctx['self_id']:
-        global sqlconn
+        sqlconn = sqlite3.connect('MltdBot.db')
         sqlconn.cursor().execute('DELETE FROM GroupInfo WHERE GroupCode = ?', (session.ctx['group_id'],))
         sqlconn.commit()
 

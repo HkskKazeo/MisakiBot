@@ -26,12 +26,12 @@ async def _():
         result = cursor.execute("SELECT * FROM EventHistory where EventID = ? AND Time = ? ORDER BY Rank",
                                 (json[-1]['id'], timelast))
         values = result.fetchall()
-        generate_gbstr(values, json[-1]['name'])
+        generate_rsstr(values, json[-1]['name'])
 
     else:
         global str_ptnew, str_hsnew
-        str_ptnew = '当前不在活动时段内，请使用历史档线查询功能'
-        str_hsnew = '当前不在活动时段内，请使用历史档线查询功能'
+        str_ptnew = '当前不在活动时段内，请使用历史档线查询功能。'
+        str_hsnew = '当前不在活动时段内，请使用历史档线查询功能。'
 
 
 def check_eventinfo(sqlconn, sqlcursor, json):
@@ -69,7 +69,8 @@ def dbwrite_event(sqlconn, id, rank, json_rank):
         else:
             break
 
-def generate_gbstr(values, name):
+
+def generate_rsstr(values, name):
     if len(values) > 0:
         global str_ptnew
         str_ptnew = '活动名称: ' + name + '\n当前时间: ' + str(values[0][2]) + \

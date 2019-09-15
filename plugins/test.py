@@ -74,3 +74,4 @@ def read_rankpage(sqlconn, sqlcursor, event, rank):
 
 
 
+
