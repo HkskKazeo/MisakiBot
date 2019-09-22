@@ -37,6 +37,8 @@ async def _(session: CommandSession):
             sqlconn.commit()
             for j in (1, 2, 3, 10, 100, 2500, 5000, 10000, 25000, 50000):
                 read_rankpage(sqlconn, sqlcursor, json_catalog[i]["id"], j)
+            for j in (1, 2, 3, 10, 100, 2500, 5000, 10000, 20000):
+                read_hspage(sqlconn, sqlcursor, json_catalog[i]["id"], j)
 
 
 def read_rankpage(sqlconn, sqlcursor, event, rank):
@@ -67,6 +69,31 @@ def read_rankpage(sqlconn, sqlcursor, event, rank):
                           VALUES(?, ?, ?, ?, ?, ?)", (event, rank, timenow, hours, score, diff))
     sqlconn.commit()
 
+
+
+def read_hspage(sqlconn, sqlcursor, event, rank):
+    str_page = 'https://api.matsurihi.me/mltd/v1/events/' + str(event) + '/rankings/logs/highScore/' + str(rank)
+    req = urllib.request.Request(str_page)
+    try:
+        response = request.urlopen(str_page)
+    except:
+        print('error' + str(event) + '_' + str(rank))
+        return
+    html = response.read()
+    json_rank = json.loads(html)
+    try:
+        timestart = datetime.strptime(json_rank[0]["data"][0]["summaryTime"], "%Y-%m-%dT%H:%M:%S+09:00")
+    except:
+        return;
+    #第一条记录的时间并非开始时间
+    timestart = datetime(timestart.year, timestart.month, timestart.day, 15, 0, 0)
+    for i in range(len(json_rank[0]["data"])):
+        timenow = datetime.strptime(json_rank[0]["data"][i]["summaryTime"], "%Y-%m-%dT%H:%M:%S+09:00")
+        hours = (timenow - timestart).days * 24.0 + (timenow - timestart).seconds / 3600.0
+        score = json_rank[0]["data"][i]["score"]
+        sqlcursor.execute("INSERT INTO EventHighScore (EventID, Rank, Time, HoursAfterBegin, HighScore) \
+                          VALUES(?, ?, ?, ?, ?)", (event, rank, timenow, hours, score))
+    sqlconn.commit()
 
 
 

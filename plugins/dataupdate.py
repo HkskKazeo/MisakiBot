@@ -28,6 +28,12 @@ async def _():
         values = result.fetchall()
         generate_rsstr(values, json[-1]['name'])
 
+        # 更新高分档线
+
+        # 更新档线预测
+
+        # 检查预警并更新
+
     else:
         global str_ptnew, str_hsnew
         str_ptnew = '当前不在活动时段内，请使用历史档线查询功能。'
@@ -38,8 +44,8 @@ def check_eventinfo(sqlconn, sqlcursor, json):
         time_s = datetime.strptime(json["schedule"]["beginDate"], "%Y-%m-%dT%H:%M:%S+09:00")
         time_e = datetime.strptime(json["schedule"]["endDate"], "%Y-%m-%dT%H:%M:%S+09:00")
         time_b = datetime.strptime(json["schedule"]["boostBeginDate"], "%Y-%m-%dT%H:%M:%S+09:00")
-        length = (time_e - time_s).days * 24.0 + (time_e - time_s).seconds / 3600.0
-        boostlength = (time_e - time_b).days * 24.0 + (time_e - time_b).seconds / 3600.0
+        length = (time_e - time_s).days * 24.0 + ((time_e - time_s).seconds + 1) / 3600.0
+        boostlength = (time_e - time_b).days * 24.0 + ((time_e - time_b).seconds + 1) / 3600.0
         sqlcursor.execute("INSERT INTO EventInfo (ID, Name, Type, BeginTime, EndTime, Length, BoostStart, \
             BoostLength) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (json["id"], json["name"],
                                                      json["type"], time_s, time_e, length, time_b,
