@@ -8,7 +8,7 @@ import sqlite3
 
 @on_command('event', only_to_me=False, aliases=('档线', '活动档线', '档线查询', '当前档线', 'pt档线'))
 async def event(session: CommandSession):
-    sqlconn = sqlite3.connect('MltdBot.db')
+    sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
     result = sqlcursor.execute('SELECT * FROM GlobalVars where VarName = ? LIMIT 1', ('str_ptnew',))
     values = result.fetchall()
@@ -20,9 +20,21 @@ async def event(session: CommandSession):
 
 @on_command('highscore', only_to_me=False, aliases=('高分档线', '高分', '高分查询', '活动曲档线', '活动曲排行'))
 async def event(session: CommandSession):
-    sqlconn = sqlite3.connect('MltdBot.db')
+    sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
     result = sqlcursor.execute('SELECT * FROM GlobalVars where VarName = ? LIMIT 1', ('str_hsnew',))
+    values = result.fetchall()
+    if len(values) > 0:
+        await session.send(str(values[0][1]))
+    else:
+        await session.send('未找到数据。')
+
+
+@on_command('predict', only_to_me=False, aliases=('档线预测', '预测档线', '预测最终档线', '最终档线预测', '档线预测查询'))
+async def event(session: CommandSession):
+    sqlconn = sqlite3.connect('Misaki.db')
+    sqlcursor = sqlconn.cursor()
+    result = sqlcursor.execute('SELECT * FROM GlobalVars where VarName = ? LIMIT 1', ('str_predict',))
     values = result.fetchall()
     if len(values) > 0:
         await session.send(str(values[0][1]))
@@ -35,7 +47,7 @@ async def event(session: CommandSession):
 async def eventhis(session: CommandSession):
     typename = {3: '传统', 4: '巡演'}
     word = session.get('str')
-    sqlconn = sqlite3.connect('MltdBot.db')
+    sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
     result = sqlcursor.execute('SELECT ID, Name, Type, BeginTime, EndTime, BoostStart FROM EventInfo where ID = ? OR \
         Name like ? LIMIT 3', (word, '%'+word+'%'))
@@ -43,7 +55,7 @@ async def eventhis(session: CommandSession):
     resultstr = ''
     for j in values:
         resultstr += '活动名称: ' + str(j[1]) + '\n类型: ' + typename[j[2]] + \
-                    '\n开始时间: ' + str(j[3]) + '\n结束时间： ' + str(j[4]) +\
+                    '\n开始时间: ' + str(j[3]) + '\n结束时间: ' + str(j[4]) +\
                      '\n折返时间: ' + str(j[5]) + '\n'
         resultstr = checkevent(sqlcursor, j[0], resultstr)
     await session.send(resultstr)
@@ -72,7 +84,7 @@ def checkevent(cursor, id, resultstr):
 async def highscorehis(session: CommandSession):
     typename = {3: '传统', 4: '巡演'}
     word = session.get('str')
-    sqlconn = sqlite3.connect('MltdBot.db')
+    sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
     result = sqlcursor.execute('SELECT ID, Name, Type, BeginTime, EndTime, BoostStart FROM EventInfo where ID = ? OR \
         Name like ? LIMIT 3', (word, '%'+word+'%'))
@@ -80,9 +92,9 @@ async def highscorehis(session: CommandSession):
     resultstr = ''
     for j in values:
         resultstr += '活动名称: ' + str(j[1]) + '\n类型: ' + typename[j[2]] + \
-                    '\n开始时间: ' + str(j[3]) + '\n结束时间： ' + str(j[4]) +\
+                    '\n开始时间: ' + str(j[3]) + '\n结束时间: ' + str(j[4]) +\
                      '\n折返时间: ' + str(j[5]) + '\n'
-        resultstr = checkevent(sqlcursor, j[0], resultstr)
+        resultstr = checkhs(sqlcursor, j[0], resultstr)
     await session.send(resultstr)
 
 
@@ -96,11 +108,11 @@ async def _(session: CommandSession):
         session.finish('格式错误，请使用活动序号或活动的部分关键字来查询。\n例:【历史高分 100】或【历史高分档线 HARMONY】')
 
 
-def checkevent(cursor, id, resultstr):
-    result = cursor.execute("select Rank, EventPT, PTIncrease from EventHighscore where EventID = ? and Time = \
+def checkhs(cursor, id, resultstr):
+    result = cursor.execute("select Rank, HighScore from EventHighscore where EventID = ? and Time = \
     (select max(time) from EventHighscore where EventID = ?) ORDER BY Rank", (id, id, ))
     values = result.fetchall()
     for j in values:
-        resultstr += str(j[0]) + ':\t' + str(j[1]) + '(+' + str(j[2]) + ')\n'
+        resultstr += str(j[0]) + ':\t' + str(j[1]) + '\n'
     resultstr += '\n'
     return resultstr

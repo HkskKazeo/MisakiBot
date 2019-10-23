@@ -15,7 +15,7 @@ async def _(session: RequestSession):
 @on_notice('group_increase')
 async def _(session: NoticeSession):
     if session.ctx['user_id'] == session.ctx['self_id']:
-        sqlconn = sqlite3.connect('MltdBot.db')
+        sqlconn = sqlite3.connect('Misaki.db')
         sqlconn.cursor().execute('INSERT INTO GroupInfo (GroupCode, IfPush) VALUES (?, ?)', (session.ctx['group_id'], True))
         sqlconn.commit()
         async with aiohttp.request('GET', 'https://api.matsurihi.me/mltd/v1/events') as resp:
@@ -25,7 +25,7 @@ async def _(session: NoticeSession):
 @on_notice('group_decrease')
 async def _(session: NoticeSession):
     if session.ctx['user_id'] == session.ctx['self_id']:
-        sqlconn = sqlite3.connect('MltdBot.db')
+        sqlconn = sqlite3.connect('Misaki.db')
         sqlconn.cursor().execute('DELETE FROM GroupInfo WHERE GroupCode = ?', (session.ctx['group_id'],))
         sqlconn.commit()
 

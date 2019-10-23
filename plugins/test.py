@@ -13,7 +13,7 @@ async def _(session: CommandSession):
     bot = nonebot.get_bot()
     await bot.send_private_msg(user_id=594246389, message='test')
 
-    sqlconn = sqlite3.connect('MltdBot.db')
+    sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
 
     str_catalog = 'https://api.matsurihi.me/mltd/v1/events' #活动列表
@@ -35,10 +35,12 @@ async def _(session: CommandSession):
                 BoostLength) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (json_catalog[i]["id"], json_catalog[i]["name"],
                               json_catalog[i]["type"], time_s, time_e, length, time_b, boostlength))
             sqlconn.commit()
-            for j in (1, 2, 3, 10, 100, 2500, 5000, 10000, 25000, 50000):
-                read_rankpage(sqlconn, sqlcursor, json_catalog[i]["id"], j)
-            for j in (1, 2, 3, 10, 100, 2500, 5000, 10000, 20000):
-                read_hspage(sqlconn, sqlcursor, json_catalog[i]["id"], j)
+            # for j in (1, 2, 3, 10, 100, 2500, 5000, 10000, 25000, 50000):
+            #    read_rankpage(sqlconn, sqlcursor, json_catalog[i]["id"], j)
+            # for j in (1, 2, 3, 10, 100, 2000, 5000, 10000, 20000):
+            #    read_hspage(sqlconn, sqlcursor, json_catalog[i]["id"], j)
+            #for j in (2500, 5000, 10000, 25000, 50000):
+            #    calculate_feature(sqlconn, sqlcursor, json_catalog[i]["id"], j)
 
 
 def read_rankpage(sqlconn, sqlcursor, event, rank):
@@ -94,6 +96,8 @@ def read_hspage(sqlconn, sqlcursor, event, rank):
         sqlcursor.execute("INSERT INTO EventHighScore (EventID, Rank, Time, HoursAfterBegin, HighScore) \
                           VALUES(?, ?, ?, ?, ?)", (event, rank, timenow, hours, score))
     sqlconn.commit()
+
+
 
 
 

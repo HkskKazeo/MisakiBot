@@ -3,15 +3,15 @@ from nonebot import on_command, CommandSession
 from datetime import datetime
 import sqlite3
 
-
+# 档线预警添加与删除
 @on_command('eventalarm', only_to_me=False, aliases=('档线预警', '档线报警', '档线提示'))
 async def eventalarm(session: CommandSession):
-    sqlconn = sqlite3.connect('MltdBot.db')
+    sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
     result = sqlcursor.execute('SELECT * FROM EventAlarmInfo where UserID = ?', (int(session.ctx['user_id']),))
     values = result.fetchall()
     if len(values) > 0:
-        await session.send('你已设置了其他报警， 设置值为Rank' + str(values[0][3]) + '达到' + str(values[0][4])
+        await session.send('你已设置了其他报警， 设置值为Rank' + str(values[0][2]) + '达到' + str(values[0][3])
                            + '时进行报警。\n如需覆盖，请使用【预警修改】命令。')
         return
     if session.state['type'] == 2:  # 群内发送
@@ -43,7 +43,7 @@ async def _(session: CommandSession):
 
 @on_command('eventalarmcancel', only_to_me=False, aliases=('取消预警', '取消报警', '预警取消', '报警取消'))
 async def eventalarmcancel(session: CommandSession):
-    sqlconn = sqlite3.connect('MltdBot.db')
+    sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
     sqlcursor.execute('Delete from EventAlarmInfo where UserID = ?', (int(session.ctx['user_id'])))
     sqlconn.commit()
