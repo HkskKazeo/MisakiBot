@@ -17,7 +17,7 @@ async def help(session: CommandSession):
 【帮助】：就是你现在在看的这个... 
 【关于】：版本更新，作者等信息。'''
     await session.send(strhelp)
-    await asyncio.sleep(1000)
+    await asyncio.sleep(1)
     strmore='''【使用注意事项】
 1. 添加好友请输入验证信息'765'。添加好友后可以邀请到其他群。
 2. 部分命令是只有私聊或在群内@机器人才会触发的。
@@ -34,7 +34,9 @@ async def help(session: CommandSession):
 Bug反馈请联系作者QQ: 594246389；
 或者前往MLTD贴吧的发布帖。
 
-初期Bug修得差不多的时候会开源。
+实时档线数据来源: api.matsurihi.me
+
+项目地址: github.com/HkskKazeo/MisakiBot
 ========
 Misaki means 'Mltd Interactive Score-count Assistant KIt'
 '''

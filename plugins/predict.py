@@ -26,6 +26,7 @@ def event_predict(sqlconn, id, type, rank, eventlength, boostlength, nowhours, j
 
 
 def predicttype1(sqlconn, id, type, rank, eventlength, nowhours, json_rank):
+    size = len(json_rank[0]['data'])
     cursor = sqlconn.cursor()
     result = cursor.execute("SELECT * FROM EventHistory where Rank = ? AND EventID IN (SELECT ID FROM EventInfo \
                             where Type = ? AND Length = ? AND ID != ?) AND (HoursAfterBegin = ? or HoursAfterBegin > ?) \
@@ -43,13 +44,14 @@ def predicttype1(sqlconn, id, type, rank, eventlength, nowhours, json_rank):
         y = data['result'].values.reshape(-1, 1)
         reg = LinearRegression()
         reg.fit(x, y)
-        answer = reg.intercept_ + (reg.coef_[0] + 1) * json_rank[0]['data'][nowhours * 2 - 1]['score']
+        answer = reg.intercept_ + (reg.coef_[0] + 1) * json_rank[0]['data'][size - 1]['score']
         return '\n' + str(rank) + ':\t' + str(int(answer))
     else:
         return ""
 
 
 def predicttype2(sqlconn, id, rank, eventlength, nowhours, json_rank):
+    size = len(json_rank[0]['data'])
     cursor = sqlconn.cursor()
     result = cursor.execute("SELECT * FROM EventHistory where Rank = ? AND EventID IN (SELECT ID FROM EventInfo \
                             where Length = ? AND ID != ?) AND (HoursAfterBegin = ? OR HoursAfterBegin = ? OR \
@@ -69,9 +71,9 @@ def predicttype2(sqlconn, id, rank, eventlength, nowhours, json_rank):
         y = data['result'].values.reshape(-1, 1)
         reg = LinearRegression()
         reg.fit(x, y)
-        answer = reg.intercept_ + reg.coef_[0] * (json_rank[0]['data'][nowhours * 2 - 1]['score'] -
-                                                  json_rank[0]['data'][nowhours * 2 - 49]['score']) \
-                 + json_rank[0]['data'][nowhours * 2 - 1]['score']
+        answer = reg.intercept_ + reg.coef_[0] * (json_rank[0]['data'][size - 1]['score'] -
+                                                  json_rank[0]['data'][size - 49]['score']) \
+                 + json_rank[0]['data'][size - 1]['score']
         return '\n' + str(rank) + ':\t' + str(int(answer))
     else:
         return ""
@@ -79,6 +81,7 @@ def predicttype2(sqlconn, id, rank, eventlength, nowhours, json_rank):
 
 def predicttype3(sqlconn, id, rank, eventlength, nowhours, json_rank):
     last = eventlength - nowhours
+    size = len(json_rank[0]['data'])
     cursor = sqlconn.cursor()
     result = cursor.execute("select EventID, HoursAfterBegin, EventPT, Type from Eventhistory A INNER JOIN EventInfo B ON\
             (A.EventID = B.ID AND A.Rank = ? AND A.EventID != ? AND (A.HoursAfterBegin > B.Length or \
@@ -101,11 +104,11 @@ def predicttype3(sqlconn, id, rank, eventlength, nowhours, json_rank):
         y = data['result']
         reg = LinearRegression()
         reg.fit(xs, y)
-        answer = reg.intercept_ + reg.coef_[0] * (json_rank[0]['data'][nowhours * 2 - 49]['score'] -
-                                                  json_rank[0]['data'][nowhours * 2 - 97]['score']) \
-                 + reg.coef_[1] * (json_rank[0]['data'][nowhours * 2 - 1]['score'] -
-                                   json_rank[0]['data'][nowhours * 2 - 49]['score']) \
-                 + json_rank[0]['data'][nowhours * 2 - 1]['score']
+        answer = reg.intercept_ + reg.coef_[0] * (json_rank[0]['data'][size - 49]['score'] -
+                                                  json_rank[0]['data'][size - 97]['score']) \
+                 + reg.coef_[1] * (json_rank[0]['data'][size - 1]['score'] -
+                                   json_rank[0]['data'][size - 49]['score']) \
+                 + json_rank[0]['data'][size - 1]['score']
         return '\n' + str(rank) + ':\t' + str(int(answer))
     else:
         return ""
