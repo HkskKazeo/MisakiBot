@@ -11,8 +11,8 @@ async def eventalarm(session: CommandSession):
     values = result.fetchall()
     if len(values) > 0:
         await session.send('你已设置了其他报警， 设置值为Rank' + str(values[0][2]) + '达到' + str(values[0][3])
-                           + '时进行报警。\n如需覆盖，请使用【预警修改】命令。')
-        return
+                           + '时进行报警。现删除。')
+        delete_alarm(sqlconn, int(session.ctx['user_id']))
     if session.state['type'] == 2:  # 群内发送
         sqlcursor.execute('Insert Into EventAlarmInfo values(?, ?, ?, ?)', (int(session.ctx['group_id']),
                           int(session.ctx['user_id']), session.state['rank'], session.state['value']))
@@ -43,8 +43,13 @@ async def _(session: CommandSession):
 @on_command('eventalarmcancel', only_to_me=False, aliases=('取消预警', '取消报警', '预警取消', '报警取消'))
 async def eventalarmcancel(session: CommandSession):
     sqlconn = sqlite3.connect('Misaki.db')
-    sqlcursor = sqlconn.cursor()
-    sqlcursor.execute('Delete from EventAlarmInfo where UserID = ?', (int(session.ctx['user_id'])))
+    delete_alarm(sqlconn, int(session.ctx['user_id']))
     sqlconn.commit()
     await session.send('取消成功！')
+
+
+def delete_alarm(sqlconn, userid):
+    sqlcursor = sqlconn.cursor()
+    sqlcursor.execute('Delete from EventAlarmInfo where UserID = ?', (userid, ))
+    sqlconn.commit()
 

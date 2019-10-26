@@ -162,6 +162,6 @@ if __name__ == '__main__':
             url = 'https://api.matsurihi.me/mltd/v1/events/106/rankings/logs/eventPoint/' + str(i)
             req = urllib.request.urlopen(url).read()
             json_ev = json.loads(req)
-            strresult += event_predict(sqlconn, 106, 4, i,  int(174.0), int(78.0), int(146.0), json_ev)
+            strresult += event_predict(sqlconn, 106, 4, i,  int(174.0), int(78.0), int(153), json_ev)
         #drawplot(sqlconn)
         print(strresult)
