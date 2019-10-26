@@ -1,9 +1,10 @@
 from nonebot import on_command, CommandSession
 import numpy
 import sqlite3
+import os
 
 
-#控分计算命令
+# 控分计算命令
 @on_command('theatersc', only_to_me=True, aliases=('传统控分', '上半月活动控分'))
 async def theatersc(session: CommandSession):
     paras = session.get('para')
@@ -59,8 +60,7 @@ def theater_sc(nowpt, nowitem, targetpt):
         nowpt += 537
         nowitem -= 180
         count_ev += 1
-    #sqlconn = sqlite3.connect('Misaki.db')
-    sqlconn = sqlite3.connect('C:\CQ\MisakiBot\Misaki.db')
+    sqlconn = sqlite3.connect(os.path.abspath(os.path.dirname(os.getcwd())) + '/' + 'Misaki.db')
     sqlcursor = sqlconn.cursor()
     result = sqlcursor.execute("SELECT * FROM dp_theater where target = ?", (int(targetpt - nowpt),))
     values = result.fetchall()
@@ -99,7 +99,7 @@ def tour_sc(nowpt, nowitem, nowpos, targetpt):
             nowpt += 720 * 2
             nowitem -= 40
             strres += '5倍活动曲2次\n'
-    sqlconn = sqlite3.connect('C:\CQ\MisakiBot\Misaki.db')
+    sqlconn = sqlite3.connect(os.path.abspath(os.path.dirname(os.getcwd())) + '/' + 'Misaki.db')
     sqlcursor = sqlconn.cursor()
     result = sqlcursor.execute("SELECT * FROM dp_tour where target = ?", (int(targetpt - nowpt),))
     values = result.fetchall()
@@ -143,6 +143,7 @@ def tour_sc(nowpt, nowitem, nowpos, targetpt):
             return strres + '*双倍按2次计算*'
 
 
+# 传统控分: 生成dp结果存数据库
 # 15体 item35 pt35
 # 20体 item49 pt49
 # 25体 item64 pt64
@@ -168,7 +169,7 @@ def theater_sqlupdate():
                                 dp[j + pt[i]][k + item[i]][t + 1] = dp[j][k][t + 1]
                             dp[j + pt[i]][k + item[i]][i + 1] += 1
 
-    sqlconn = sqlite3.connect('C:\CQ\MisakiBot\Misaki.db')
+    sqlconn = sqlite3.connect(os.path.abspath(os.path.dirname(os.getcwd())) + '/' + 'Misaki.db')
     cursor = sqlconn.cursor()
     for j in range(size):
         res = []
@@ -183,6 +184,7 @@ def theater_sqlupdate():
             sqlconn.commit()
 
 
+# 巡演控分: 生成dp结果存数据库
 # 15体 1.2倍 70
 # 15体 1.0倍 58
 # 20体 1.2倍 93

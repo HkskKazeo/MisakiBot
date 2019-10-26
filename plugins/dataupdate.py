@@ -1,16 +1,32 @@
-import nonebot
+﻿import nonebot
 import sqlite3
 import aiohttp
 from . import predict
 from datetime import datetime
+import asyncio
 
 
 # 档线更新;预测更新
 # 在每小时的12.42分时执行(matsurihi.me 10,40更新)
 @nonebot.scheduler.scheduled_job('cron', minute='12, 42')
 async def _():
-    async with aiohttp.request('GET', 'https://api.matsurihi.me/mltd/v1/events') as resp:
-        json = await resp.json()
+    trycount = 0
+    while trycount < 5:
+        try:
+            async with aiohttp.request('GET', 'https://api.matsurihi.me/mltd/v1/events') as resp:
+                if resp.status == 200:
+                    json = await resp.json()
+                    break
+                await asyncio.sleep(1)
+        except:
+            trycount += 1
+            await asyncio.sleep(1)
+            print('update_except', trycount)
+            pass
+    if trycount == 5:
+        print('event_read_failed')
+        return
+    print("event_read_success")
     time = datetime.strptime(json[-1]['schedule']['endDate'], "%Y-%m-%dT%H:%M:%S+09:00")
     sqlconn = sqlite3.connect('Misaki.db')
     cursor = sqlconn.cursor()
@@ -18,21 +34,35 @@ async def _():
 
         eventlength, boostlength = check_eventinfo(sqlconn, cursor, json[-1])
 
-
         # 更新pt档线
         strpredict = '预测结果：'
         for i in (1, 2, 3, 10, 100, 2500, 5000, 10000, 25000, 50000):
-            str_rank = 'https://api.matsurihi.me/mltd/v1/events/' + str(json[-1]['id']) \
-                       + '/rankings/logs/eventPoint/' + str(i)
-            async with aiohttp.request('GET', str_rank) as resp_rank:
-                json_rank = await resp_rank.json()
+            trycount = 0
+            while trycount < 5:
+                try:
+                    str_rank = 'https://api.matsurihi.me/mltd/v1/events/' + str(json[-1]['id']) \
+                               + '/rankings/logs/eventPoint/' + str(i)
+                    async with aiohttp.request('GET', str_rank) as resp:
+                        if resp.status == 200:
+                            json_rank = await resp.json()
+                            break
+                except:
+                    trycount += 1
+                    await asyncio.sleep(1)
+                    print('update_except_rank', i, trycount)
+                    pass
+            if trycount == 5:
+                print('rank_read_failed', i)
+                continue
+            print("rank_read_success", i)
             nowhours = dbwrite_event(sqlconn, json[-1]['id'], i, json_rank)
             # 更新档线预测
             if 2500 <= i <= 50000:
                 # 更新档线预测
+                print(json_rank[0]['data'][-1]['summaryTime'])
                 if nowhours > eventlength - boostlength and nowhours % 6 == 0:
-                    strpredict += predict.event_predict(sqlconn, json[-1]['id'], json[-1]['type'], i, eventlength,
-                                                        boostlength, nowhours, json_rank)
+                    strpredict += predict.event_predict(sqlconn, json[-1]['id'], json[-1]['type'], i, int(eventlength),
+                                                        int(boostlength), int(nowhours), json_rank)
 
         # 写入档线更新结果
         timelast = datetime.strptime(json_rank[0]["data"][-1]["summaryTime"], "%Y-%m-%dT%H:%M:%S+09:00")
@@ -46,8 +76,8 @@ async def _():
             strpredict = '活动名称：' + json[-1]['name'] + '\n预测时间：' + json_rank[0]["data"][-1]["summaryTime"] + '\n'\
                          + strpredict
             cursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (strpredict, 'str_predict'))
-            cursor.execute('Insert Into PredictHistory(Time, Result) VALUES (?, ?)',
-                           (timelast, str))
+            cursor.execute('Insert Into PredictHistory(Time, text) VALUES (?, ?)',
+                           (timelast, strpredict))
             sqlconn.commit()
 
         # 检查预警并更新
@@ -55,11 +85,25 @@ async def _():
 
         # 更新高分档线
         for i in (1, 2, 3, 10, 100, 2000, 5000, 10000, 20000):
-            str_rank = 'https://api.matsurihi.me/mltd/v1/events/' + str(json[-1]['id']) \
-                       + '/rankings/logs/highScore/' + str(i)
-            async with aiohttp.request('GET', str_rank) as resp_rank:
-                json_rank = await resp_rank.json()
-            dbwrite_hs(sqlconn, json[-1]['id'], i, json_rank)
+            trycount = 0
+            while trycount < 5:
+                try:
+                    str_hs = 'https://api.matsurihi.me/mltd/v1/events/' + str(json[-1]['id']) \
+                               + '/rankings/logs/highScore/' + str(i)
+                    async with aiohttp.request('GET', str_hs) as resp:
+                        if resp.status == 200:
+                            json_hs = await resp.json()
+                            break
+                except:
+                    trycount += 1
+                    await asyncio.sleep(1)
+                    print('update_except_hs', i, trycount)
+                    pass
+            if trycount == 5:
+                print('hs_read_failed', i)
+                continue
+            print("hs_read_success", i)
+            dbwrite_hs(sqlconn, json[-1]['id'], i, json_hs)
 
         timelast = datetime.strptime(json_rank[0]["data"][-1]["summaryTime"], "%Y-%m-%dT%H:%M:%S+09:00")
         result = cursor.execute("SELECT * FROM EventHighScore where EventID = ? AND Time = ? ORDER BY Rank",

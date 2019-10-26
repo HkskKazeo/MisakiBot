@@ -1,13 +1,12 @@
 from datetime import datetime
 import sqlite3
-import aiohttp
 import urllib
 from urllib import request
 import json
 import os
 
 
-# 首次启动前执行
+# 首次启动前执行，初始化历史档线
 def init_database():
 
     sqlconn = sqlite3.connect(os.path.abspath(os.path.dirname(os.getcwd())) + '/' + 'Misaki.db')
@@ -99,6 +98,7 @@ def read_hspage(sqlconn, sqlcursor, event, rank):
         sqlcursor.execute("INSERT INTO EventHighScore (EventID, Rank, Time, HoursAfterBegin, HighScore) \
                               VALUES(?, ?, ?, ?, ?)", (event, rank, timenow, hours, score))
     sqlconn.commit()
+
 
 if __name__ == '__main__':
     init_database()

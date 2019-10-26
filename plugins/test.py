@@ -2,7 +2,6 @@ import nonebot
 from nonebot import on_command, CommandSession
 from datetime import datetime
 import sqlite3
-import aiohttp
 import urllib
 from urllib import request
 import json
@@ -70,7 +69,6 @@ def read_rankpage(sqlconn, sqlcursor, event, rank):
         sqlcursor.execute("INSERT INTO EventHistory (EventID, Rank, Time, HoursAfterBegin, EventPT, PTIncrease) \
                           VALUES(?, ?, ?, ?, ?, ?)", (event, rank, timenow, hours, score, diff))
     sqlconn.commit()
-
 
 
 def read_hspage(sqlconn, sqlcursor, event, rank):

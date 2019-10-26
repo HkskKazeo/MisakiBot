@@ -1,9 +1,8 @@
-import nonebot
 from nonebot import on_command, CommandSession
 import sqlite3
 
 
-#各一次性档线查询接口
+# 各一次性档线查询接口
 
 
 @on_command('event', only_to_me=False, aliases=('档线', '活动档线', '档线查询', '当前档线', 'pt档线'))
@@ -96,7 +95,6 @@ async def highscorehis(session: CommandSession):
                      '\n折返时间: ' + str(j[5]) + '\n'
         resultstr = checkhs(sqlcursor, j[0], resultstr)
     await session.send(resultstr)
-
 
 
 @highscorehis.args_parser

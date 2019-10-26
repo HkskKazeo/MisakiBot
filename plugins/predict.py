@@ -3,21 +3,20 @@ import urllib.request
 import json
 import matplotlib.pyplot as plot
 import pandas as pd
-
+import os
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
 
 
-
-#活动档线自动预测
+# 活动档线自动预测
 # paras: 活动类型 待预测排名 活动总长度 boost长度 当前经过长度 当前活动目前为止的增长记录
 def event_predict(sqlconn, id, type, rank, eventlength, boostlength, nowhours, json_rank):
 
-    #预测方式： 从Boost开始，每6h更新一次
-    #Boost后18h内： 使用当前总分数与同类型同长度活动对比做线性回归
-    #Boost后24h起~42h： 使用24h内分数与同长度活动对比做线性回归
-    #Boost后48h起~活动结束前6h： 使用此前24h分数与24~48h分数与所有活动对比做线性回归
-    #rank包含2500,5000,10000,25000,50000
+    # 预测方式： 从Boost开始，每6h更新一次
+    # Boost后18h内： 使用当前总分数与同类型同长度活动对比做线性回归
+    # Boost后24h起~42h： 使用24h内分数与同长度活动对比做线性回归
+    # Boost后48h起~活动结束前6h： 使用此前24h分数与24~48h分数与所有活动对比做线性回归
+    # rank包含2500,5000,10000,25000,50000
+    print(eventlength, boostlength, nowhours, len(json_rank[0]['data']))
     if nowhours < eventlength - boostlength + 24:
         return predicttype1(sqlconn, id, type, rank, eventlength, nowhours, json_rank)
     elif nowhours < eventlength - boostlength + 48:
@@ -146,17 +145,20 @@ def drawplot(sqlconn):
 
 
 if __name__ == '__main__':
-    sqlconn = sqlite3.connect('Misaki.db')
+    sqlconn = sqlite3.connect(os.path.abspath(os.path.dirname(os.getcwd())) + '/' + 'Misaki.db')
+    sqlcursor = sqlconn.cursor()
     # aiohttp.request('GET', 'https://api.matsurihi.me/mltd/v1/events/100/rankings/logs/eventPoint/2500') as resp:
     #     json = resp.json()
-
+    for i in (128.5, 129.0, 129.5, 130.0):
+        if i % 3 == 0:
+            print(i)
     # event_predict(sqlconn, 4, 2500, 174, 78, 150, json)
-    for j in (102, 108, 114, 120, 126, 132, 138, 144, 150, 156, 162, 168):
+    for j in (102.0, 108.0, 114.0, 120.0, 126.0, 132.0, 138.0, 144.0, 150.0, 156.0, 162.0, 168.0):
         strresult = "预测结果："
         for i in (2500, 5000, 10000, 25000, 50000):
-            url = 'https://api.matsurihi.me/mltd/v1/events/102/rankings/logs/eventPoint/' + str(i)
+            url = 'https://api.matsurihi.me/mltd/v1/events/106/rankings/logs/eventPoint/' + str(i)
             req = urllib.request.urlopen(url).read()
             json_ev = json.loads(req)
-            strresult += event_predict(sqlconn, 102, 4, i, 174, 78, j, json_ev)
+            strresult += event_predict(sqlconn, 106, 4, i,  int(174.0), int(78.0), int(146.0), json_ev)
         #drawplot(sqlconn)
         print(strresult)

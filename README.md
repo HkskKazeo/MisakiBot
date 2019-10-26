@@ -2,9 +2,9 @@
 
 Misaki是什么?
 
-<img src="J:\Desktop\Misakiaoba.gif" style="zoom:50%;" align="left" />
+<img src="Misakiaoba.gif" style="zoom:50%;" align="left" />
 
-**Mi**llionlive TD **S**core-count **a**ssistant **Ki**t, 是一款提供MLTD活动档线相关功能的 [酷Q]( https://cqp.cc/ ) 机器人插件。它基于 [nonebot]( https://github.com/richardchien/nonebot ) 编写，目前没有使用需要CoolQ Pro的功能。
+**M**ltd **i**nteractive **S**core-count **a**ssistant **Ki**t, 是一款提供MLTD活动档线相关功能的 [酷Q]( https://cqp.cc/ ) 机器人插件。它基于 [nonebot]( https://github.com/richardchien/nonebot ) 编写，目前没有使用需要CoolQ Pro的功能。
 
 MLTD的实时档线数据来源于 [Princess]( https://api.matsurihi.me/docs/ ) 提供的Web API。
 

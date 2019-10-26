@@ -1,7 +1,6 @@
-import nonebot
 from nonebot import on_command, CommandSession
-from datetime import datetime
 import sqlite3
+
 
 # 档线预警添加与删除
 @on_command('eventalarm', only_to_me=False, aliases=('档线预警', '档线报警', '档线提示'))
