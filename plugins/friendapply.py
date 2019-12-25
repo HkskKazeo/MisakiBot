@@ -10,6 +10,11 @@ async def _(session: RequestSession):
         await  session.approve()
         return
     await session.reject('验证错误')
+	
+@on_request('group')
+async def _(session: RequestSession):
+	if session.ctx['sub_type'] == 'invite':
+		await session.approve()
 
 
 @on_notice('group_increase')

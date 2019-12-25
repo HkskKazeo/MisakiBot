@@ -3,6 +3,7 @@ import asyncio
 
 
 # 帮助及关于
+
 @on_command('help', only_to_me=True, aliases=('帮助',))
 async def help(session: CommandSession):
     strhelp = '''当前此Bot可以使用的功能（命令）包括:
@@ -28,8 +29,8 @@ async def help(session: CommandSession):
 @on_command('about', only_to_me=True, aliases=('关于',))
 async def help(session: CommandSession):
     strhelp = '''Misaki Bot
-当前版本：V0.9.0
-这是公开测试的第一个版本。
+当前版本：V0.9.1
+修复了档线更新和预警的一些问题。
 
 Bug反馈请联系作者QQ: 594246389；
 或者前往MLTD贴吧的发布帖。

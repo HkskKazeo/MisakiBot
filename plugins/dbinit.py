@@ -33,10 +33,11 @@ def init_database():
                 sqlcursor.execute("INSERT INTO EventInfo (ID, Name, Type, BeginTime, EndTime, Length, BoostStart, \
                         BoostLength) VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (i["id"], i["name"], i["type"], time_s, time_e,
                                                                        length, time_b, boostlength))
-            else:
-                finished = True
+            #else:
+                #finished = True
 
             sqlconn.commit()
+            print(str(i['id']) + ' update')
             for j in (1, 2, 3, 10, 100, 2500, 5000, 10000, 25000, 50000):
                read_rankpage(sqlconn, sqlcursor, i["id"], j)
             for j in (1, 2, 3, 10, 100, 2000, 5000, 10000, 20000):
@@ -44,6 +45,9 @@ def init_database():
 
             if finished:
                 break
+        else:
+			#print(str(i['id']) + ' skipped')
+            continue
 
 
 def read_rankpage(sqlconn, sqlcursor, event, rank):

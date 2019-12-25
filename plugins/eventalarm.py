@@ -30,13 +30,13 @@ async def _(session: CommandSession):
         session.state['type'] = 2
     else:
         session.state['type'] = 1
-    if stripped_arg:
+    if stripped_arg and len(stripped_arg) == 2:
         session.state['rank'] = int(stripped_arg[0])
         session.state['value'] = int(stripped_arg[1])
         if session.state['rank'] not in (1,2,3,10,100,2500,5000,10000,25000,50000):
             session.finish('rank错误,可用的rank包括1, 2, 3, 10, 100, 2500, 5000, 10000, 25000, 50000')
     else:
-        session.finish('格式错误，请使用档线报警 Rank 设定值的格式设定。\n例: \
+        session.finish('格式错误，请使用档线预警 Rank 设定值的格式设定。\n例: \
                        【档线报警 2500 300000】表示在Rank2500的档线达到300000以上时进行通知')
 
 

@@ -45,6 +45,7 @@ def predicttype1(sqlconn, id, type, rank, eventlength, nowhours, json_rank):
         reg = LinearRegression()
         reg.fit(x, y)
         answer = reg.intercept_ + (reg.coef_[0] + 1) * json_rank[0]['data'][size - 1]['score']
+        print(reg.intercept_, reg.coef_[0], json_rank[0]['data'][size - 1]['score'])
         return '\n' + str(rank) + ':\t' + str(int(answer))
     else:
         return ""
@@ -74,6 +75,7 @@ def predicttype2(sqlconn, id, rank, eventlength, nowhours, json_rank):
         answer = reg.intercept_ + reg.coef_[0] * (json_rank[0]['data'][size - 1]['score'] -
                                                   json_rank[0]['data'][size - 49]['score']) \
                  + json_rank[0]['data'][size - 1]['score']
+        print(reg.intercept_, reg.coef_[0], json_rank[0]['data'][size - 1]['score'], json_rank[0]['data'][size - 49]['score'])
         return '\n' + str(rank) + ':\t' + str(int(answer))
     else:
         return ""
@@ -109,6 +111,8 @@ def predicttype3(sqlconn, id, rank, eventlength, nowhours, json_rank):
                  + reg.coef_[1] * (json_rank[0]['data'][size - 1]['score'] -
                                    json_rank[0]['data'][size - 49]['score']) \
                  + json_rank[0]['data'][size - 1]['score']
+        print(reg.intercept_, reg.coef_[0], reg.coef_[1], json_rank[0]['data'][size - 1]['score'],
+              json_rank[0]['data'][size - 49]['score'], json_rank[0]['data'][size - 97]['score'])
         return '\n' + str(rank) + ':\t' + str(int(answer))
     else:
         return ""
@@ -159,9 +163,9 @@ if __name__ == '__main__':
     for j in (102.0, 108.0, 114.0, 120.0, 126.0, 132.0, 138.0, 144.0, 150.0, 156.0, 162.0, 168.0):
         strresult = "预测结果："
         for i in (2500, 5000, 10000, 25000, 50000):
-            url = 'https://api.matsurihi.me/mltd/v1/events/106/rankings/logs/eventPoint/' + str(i)
+            url = 'https://api.matsurihi.me/mltd/v1/events/110/rankings/logs/eventPoint/' + str(i)
             req = urllib.request.urlopen(url).read()
             json_ev = json.loads(req)
-            strresult += event_predict(sqlconn, 106, 4, i,  int(174.0), int(78.0), int(153), json_ev)
+            strresult += event_predict(sqlconn, 110, 4, i,  int(174), int(78.0), int(144), json_ev)
         #drawplot(sqlconn)
         print(strresult)

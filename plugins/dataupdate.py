@@ -7,8 +7,7 @@ import asyncio
 
 
 # 档线更新;预测更新
-# 在每小时的12.42分时执行(matsurihi.me 10,40更新)
-@nonebot.scheduler.scheduled_job('cron', minute='12, 42')
+@nonebot.scheduler.scheduled_job('cron', minute='18, 48')
 async def _():
     trycount = 0
     while trycount < 5:
@@ -30,7 +29,7 @@ async def _():
     time = datetime.strptime(json[-1]['schedule']['endDate'], "%Y-%m-%dT%H:%M:%S+09:00")
     sqlconn = sqlite3.connect('Misaki.db')
     cursor = sqlconn.cursor()
-    if (json[-1]['type'] == 3 or json[-1]['type'] == 4) and time > datetime.now():
+    if json[-1]['type'] == 3 or json[-1]['type'] == 4:
 
         eventlength, boostlength = check_eventinfo(sqlconn, cursor, json[-1])
 
@@ -55,7 +54,11 @@ async def _():
                 print('rank_read_failed', i)
                 continue
             print("rank_read_success", i)
-            nowhours = dbwrite_event(sqlconn, json[-1]['id'], i, json_rank)
+            try:
+                nowhours = dbwrite_event(sqlconn, json[-1]['id'], i, json_rank)
+            except:
+                print('数据为空')
+                continue
             # 更新档线预测
             if 2500 <= i <= 50000:
                 # 更新档线预测
@@ -81,7 +84,18 @@ async def _():
             sqlconn.commit()
 
         # 检查预警并更新
-        check_alarms(sqlconn, cursor, values)
+        bot = nonebot.get_bot()
+        msgtype, user, msg = check_alarms(sqlconn, values)
+        try:
+            for i in range(len(msgtype)):
+                if i == 1:
+                    print(user[i], msg[i])
+                    await bot.send_private_msg(user_id=user[i], message=msg[i])
+                else:
+                    print(user[i], msg[i])
+                    await bot.send_group_msg(group_id=user[i], message=msg[i])
+        except:
+            pass
 
         # 更新高分档线
         for i in (1, 2, 3, 10, 100, 2000, 5000, 10000, 20000):
@@ -202,26 +216,39 @@ def generate_hsstr(sqlconn, sqlcursor, values, name):
 def reset_str(sqlconn, sqlcursor):
     sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ? OR VarName = ?',
                       ('当前不在活动时段内，请使用历史档线查询功能。', 'str_ptnew', 'str_hsnew',))
+    sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ?',
+                      ('当前不在活动时段内或未到开始预测的时点(首次预测结果更新在后半段开始后6小时)。', 'str_predict'))
     sqlconn.commit()
 
 
 # 检查是否存在被触发的档线报警,并触发通知
-async def check_alarms(sqlconn, sqlcursor, values):
-    bot = nonebot.get_bot()
-    result = sqlcursor.execute("SELECT * FROM EventAlarmInfo order by Rank", ())
+def check_alarms(sqlconn, values):
+    cursor = sqlconn.cursor()
+    result = cursor.execute("SELECT * FROM EventAlarmInfo order by Rank", ())
     alarmlist = result.fetchall()
+    msgtype = []
+    user = []
+    msg = []
+    for i in values:
+        print(i[0], i[1], i[2], i[3], i[4])
     for j in alarmlist:
+        print(j[0], j[1], j[2], j[3])
         for i in values:
             if j[2] == i[1]:
                 if j[3] <= i[4]:
-                    sqlcursor.execute("DELETE FROM EventAlarmInfo Where UserID = ?", j[1])
-                    str = "您设置的Rank " + str(i[1]) + " 档线预警已经触发！设置值为 " + str(j[3]) + \
+                    cursor.execute("DELETE FROM EventAlarmInfo Where UserID = ?", (j[1],))
+                    strsend = "您设置的Rank " + str(i[1]) + " 档线预警已经触发！设置值为 " + str(j[3]) + \
                           ", 当前值为 " + str(i[4])
                     if j[0] == -1: #私聊发送提示
-                        await bot.send_private_msg(user_id=j[1], message=str)
+                        msgtype.append(1)
+                        user.append(j[1])
+                        msg.append(strsend)
                     else: #群内发送并@
-                        str = '[CQ:at,qq=' + str(j[1]) + ']' + str
-                        await bot.send_group_msg(group_id=j[0], msg=str)
+                        strsend = '[CQ:at,qq=' + str(j[1]) + ']' + strsend
+                        msgtype.append(0)
+                        user.append(j[0])
+                        msg.append(strsend)
                 break
 
-    sqlcursor.commit()
+    sqlconn.commit()
+    return msgtype, user, msg

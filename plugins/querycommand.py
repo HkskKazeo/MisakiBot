@@ -1,10 +1,9 @@
+import nonebot
 from nonebot import on_command, CommandSession
 import sqlite3
 
 
 # 各一次性档线查询接口
-
-
 @on_command('event', only_to_me=False, aliases=('档线', '活动档线', '档线查询', '当前档线', 'pt档线'))
 async def event(session: CommandSession):
     sqlconn = sqlite3.connect('Misaki.db')
@@ -52,6 +51,9 @@ async def eventhis(session: CommandSession):
         Name like ? LIMIT 3', (word, '%'+word+'%'))
     values = result.fetchall()
     resultstr = ''
+    if len(values) == 0:
+        resultstr += '未得到结果，请确认关键字输入正确（必须是官方活动名称的一部分，暂不支持各种玩家间\
+        约定俗成的缩写）。暂无扩线前的数据，正在寻找补充途径。'
     for j in values:
         resultstr += '活动名称: ' + str(j[1]) + '\n类型: ' + typename[j[2]] + \
                     '\n开始时间: ' + str(j[3]) + '\n结束时间: ' + str(j[4]) +\
