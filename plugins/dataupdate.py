@@ -66,6 +66,9 @@ async def _():
                 if nowhours > eventlength - boostlength and nowhours % 6 == 0:
                     strpredict += predict.event_predict(sqlconn, json[-1]['id'], json[-1]['type'], i, int(eventlength),
                                                         int(boostlength), int(nowhours), json_rank)
+            # 更新档线对比
+            if 2500 == i and nowhours > 0.5:
+                generate_comparestr(sqlconn, cursor, json[-1]['name'], json[-1]['type'], eventlength, nowhours, json_rank)
 
         # 写入档线更新结果
         timelast = datetime.strptime(json_rank[0]["data"][-1]["summaryTime"], "%Y-%m-%dT%H:%M:%S+09:00")
@@ -152,6 +155,7 @@ def dbwrite_event(sqlconn, id, rank, json_rank):
                                   "%Y-%m-%dT%H:%M:%S+09:00")
     timestart = datetime(timestart.year, timestart.month, timestart.day, 15, 0, 0)
     hoursnow = (lasttime - timestart).days * 24.0 + (lasttime - timestart).seconds / 3600.0
+
     for j in reversed(json_rank[0]['data']):
         cursor = sqlconn.cursor()
         timestamp = datetime.strptime(j["summaryTime"], "%Y-%m-%dT%H:%M:%S+09:00")
@@ -180,6 +184,27 @@ def generate_ptstr(sqlconn, sqlcursor, values, name):
             str_ptnew += str(j[1]) + ':\t' + str(j[4]) + '(+' + str(j[5]) + ')\n'
         sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (str_ptnew, 'str_ptnew'))
         sqlconn.commit()
+
+# 统计历史活动当前时点的档线，创建查询字符串
+def generate_comparestr(sqlconn, cursor, name, type, eventlength, nowhours, json_rank):
+    if len(json_rank[0]["data"]) < 2:
+        return
+    pt = str(json_rank[0]["data"][-1]["score"])
+    inc = str(json_rank[0]["data"][-1]["score"] - json_rank[0]["data"][-2]["score"])
+    str_ptcomp = '活动名称： ' + name + '\n当前经过时间：' + str(nowhours) + \
+                 '\n当前一档pt及增速: ' + pt + '(' + inc + ')' +\
+                 '\n历史活动数据(名称，现时点pt, 现时点增速，最终pt)\n'
+    result = cursor.execute(
+        "SELECT A.EventPT, A.PTIncrease, B.EventPT, C.Name FROM EventInfo C \
+        INNER JOIN EventHistory A On A.EventID = C.ID AND A.Rank = 2500 AND A.HoursAfterBegin = ? \
+        INNER JOIN EventHistory B On B.EventID = C.ID AND B.Rank = 2500 AND B.HoursAfterBegin > C.Length \
+        WHERE C.Type = ? AND C.Length = ?", (nowhours, type, eventlength))
+    values = result.fetchall()
+    for j in values:
+        str_ptcomp +=  str(j[3]) + '\n' + str(j[0]) + '\t' + str(j[1]) + '\t' + str(j[2]) + '\n'
+    if len(values) > 0:
+        cursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (str_ptcomp, 'str_ptcomp'))
+    sqlconn.commit()
 
 
 # 倒序写入本次活动高分更新，直到遇到一条已存在的记录
@@ -214,8 +239,8 @@ def generate_hsstr(sqlconn, sqlcursor, values, name):
 
 # 重置档线/高分查询字符串
 def reset_str(sqlconn, sqlcursor):
-    sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ? OR VarName = ?',
-                      ('当前不在活动时段内，请使用历史档线查询功能。', 'str_ptnew', 'str_hsnew',))
+    sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ? OR VarName = ? OR VarName = ?',
+                      ('当前不在活动时段内，请使用历史档线查询功能。', 'str_ptnew', 'str_hsnew', 'str_ptcomp',))
     sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ?',
                       ('当前不在活动时段内或未到开始预测的时点(首次预测结果更新在后半段开始后6小时)。', 'str_predict'))
     sqlconn.commit()

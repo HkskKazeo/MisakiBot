@@ -27,8 +27,18 @@ async def event(session: CommandSession):
     else:
         await session.send('未找到数据。')
 
+@on_command('highscore', only_to_me=False, aliases=('档线对比', '增幅对比', '档线趋势', '趋势比较'))
+async def event(session: CommandSession):
+    sqlconn = sqlite3.connect('Misaki.db')
+    sqlcursor = sqlconn.cursor()
+    result = sqlcursor.execute('SELECT * FROM GlobalVars where VarName = ? LIMIT 1', ('str_ptcomp',))
+    values = result.fetchall()
+    if len(values) > 0:
+        await session.send(str(values[0][1]))
+    else:
+        await session.send('未找到数据。')
 
-@on_command('predict', only_to_me=False, aliases=('档线预测', '预测档线', '预测最终档线', '最终档线预测', '档线预测查询'))
+@on_command('predict', only_to_me=False, aliases=('档线预测', '预测档线', '预测查询', '活动预测', ''))
 async def event(session: CommandSession):
     sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
@@ -41,7 +51,7 @@ async def event(session: CommandSession):
 
 
 # 历史档线查询，根据关键字查找最多3个活动
-@on_command('eventhis', only_to_me=False, aliases=('历史档线', '历史活动档线', '历史pt档线', '历史档线查询', '过去档线'))
+@on_command('eventhis', only_to_me=False, aliases=('历史档线', '历史活动', '历史pt', '历史查询', '历史'))
 async def eventhis(session: CommandSession):
     typename = {3: '传统', 4: '巡演'}
     word = session.get('str')

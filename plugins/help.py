@@ -9,6 +9,7 @@ async def help(session: CommandSession):
     strhelp = '''当前此Bot可以使用的功能（命令）包括:
 【档线查询】：查询当前活动的最新档线
 【高分查询】：查询当前活动的最新活动曲高分榜
+【档线对比】：将当前活动最新档线与历史同类活动在同一时间的值做比较。暂时只提供一档(2500名)
 【历史档线】：查询过去活动的最终档线，可使用活动名称的一段来模糊查询
 【历史高分】：查询过去活动的活动曲高分榜,同历史档线
 【档线预警】：为档线设定一个预警值，当前活动档线超过此值时会@提醒，摸鱼水群好帮手
@@ -29,8 +30,10 @@ async def help(session: CommandSession):
 @on_command('about', only_to_me=True, aliases=('关于',))
 async def help(session: CommandSession):
     strhelp = '''Misaki Bot
-当前版本：V0.9.1
-修复了档线更新和预警的一些问题。
+当前版本：V0.9.2
+增加档线对比指令。
+修改了邀请加群的处理。
+一些备选关键词的调整。
 
 Bug反馈请联系作者QQ: 594246389；
 或者前往MLTD贴吧的发布帖。
