@@ -27,7 +27,7 @@ async def event(session: CommandSession):
     else:
         await session.send('未找到数据。')
 
-@on_command('highscore', only_to_me=False, aliases=('档线对比', '增幅对比', '档线趋势', '趋势比较'))
+@on_command('match', only_to_me=False, aliases=('档线对比', '增幅对比', '档线趋势', '趋势比较'))
 async def event(session: CommandSession):
     sqlconn = sqlite3.connect('Misaki.db')
     sqlcursor = sqlconn.cursor()
@@ -67,7 +67,8 @@ async def eventhis(session: CommandSession):
     for j in values:
         resultstr += '活动名称: ' + str(j[1]) + '\n类型: ' + typename[j[2]] + \
                     '\n开始时间: ' + str(j[3]) + '\n结束时间: ' + str(j[4]) +\
-                     '\n折返时间: ' + str(j[5]) + '\n'
+                     '\n折返时间: ' + str(j[5]) + '\n' +\
+                     '=======================\n'+ '\t档线\t\t分数\n'
         resultstr = checkevent(sqlcursor, j[0], resultstr)
     await session.send(resultstr)
 
@@ -86,7 +87,7 @@ def checkevent(cursor, id, resultstr):
     (select max(time) from EventHistory where EventID = ?) ORDER BY Rank", (id, id, ))
     values = result.fetchall()
     for j in values:
-        resultstr += str(j[0]) + ':\t' + str(j[1]) + '(+' + str(j[2]) + ')\n'
+        resultstr += '\t' + str(j[0]) + ':\t\t' + str(j[1]) + '(+' + str(j[2]) + ')\n'
     resultstr += '\n'
     return resultstr
 
@@ -104,7 +105,8 @@ async def highscorehis(session: CommandSession):
     for j in values:
         resultstr += '活动名称: ' + str(j[1]) + '\n类型: ' + typename[j[2]] + \
                     '\n开始时间: ' + str(j[3]) + '\n结束时间: ' + str(j[4]) +\
-                     '\n折返时间: ' + str(j[5]) + '\n'
+                     '\n折返时间: ' + str(j[5]) + '\n'+\
+                     '=======================\n'+ '\t档线\t\t分数\n'
         resultstr = checkhs(sqlcursor, j[0], resultstr)
     await session.send(resultstr)
 
@@ -123,6 +125,6 @@ def checkhs(cursor, id, resultstr):
     (select max(time) from EventHighscore where EventID = ?) ORDER BY Rank", (id, id, ))
     values = result.fetchall()
     for j in values:
-        resultstr += str(j[0]) + ':\t' + str(j[1]) + '\n'
+        resultstr += '\t' + str(j[0]) + ':\t \t' + str(j[1]) + '\n'
     resultstr += '\n'
     return resultstr

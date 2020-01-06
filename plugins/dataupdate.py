@@ -7,7 +7,7 @@ import asyncio
 
 
 # 档线更新;预测更新
-@nonebot.scheduler.scheduled_job('cron', minute='18, 48')
+@nonebot.scheduler.scheduled_job('cron', minute='18,48')
 async def _():
     trycount = 0
     while trycount < 5:
@@ -178,10 +178,10 @@ def dbwrite_event(sqlconn, id, rank, json_rank):
 # 创建档线查询字符串
 def generate_ptstr(sqlconn, sqlcursor, values, name):
     if len(values) > 0:
-        str_ptnew = '活动名称: ' + name + '\n当前时间: ' + str(values[0][2]) + \
-                    '\n已经过: ' + str(values[0][3]) + '小时\n========\n'
+        str_ptnew = '活动名称: ' + name + '\n更新时间: ' + str(values[0][2]) + '(日本时间)' \
+                    '\n已经过: ' + str(values[0][3]) + '小时\n=======================\n'+ '\t档线\t\t分数\n'
         for j in values:
-            str_ptnew += str(j[1]) + ':\t' + str(j[4]) + '(+' + str(j[5]) + ')\n'
+            str_ptnew += '\t' + str(j[1]) + '\t \t' + str(j[4]) + '(+' + str(j[5]) + ')\n'
         sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (str_ptnew, 'str_ptnew'))
         sqlconn.commit()
 
@@ -229,10 +229,10 @@ def dbwrite_hs(sqlconn, id, rank, json_rank):
 # 创建高分查询字符串
 def generate_hsstr(sqlconn, sqlcursor, values, name):
     if len(values) > 0:
-        str_ptnew = '活动名称: ' + name + '\n当前时间: ' + str(values[0][2]) + \
-                    '\n已经过: ' + str(values[0][3]) + '小时\n========\n'
+        str_ptnew = '活动名称: ' + name + '\n更新时间: ' + str(values[0][2]) + ' (日本时间)'\
+                    '\n已经过: ' + str(values[0][3]) + '小时\n=======================\n'+ '\t档线\t\t分数\n'
         for j in values:
-            str_ptnew += str(j[1]) + ':\t' + str(j[4]) + '\n'
+            str_ptnew += '\t' + str(j[1]) + '\t \t' + str(j[4]) + '\n'
         sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (str_ptnew, 'str_hsnew'))
         sqlconn.commit()
 
