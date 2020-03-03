@@ -68,7 +68,7 @@ async def eventhis(session: CommandSession):
         resultstr += '活动名称: ' + str(j[1]) + '\n类型: ' + typename[j[2]] + \
                     '\n开始时间: ' + str(j[3]) + '\n结束时间: ' + str(j[4]) +\
                      '\n折返时间: ' + str(j[5]) + '\n' +\
-                     '=======================\n'+ '\t档线\t\t分数\n'
+                     '====================\n'+ '\t档线\t\t分数\n'
         resultstr = checkevent(sqlcursor, j[0], resultstr)
     await session.send(resultstr)
 
@@ -88,7 +88,6 @@ def checkevent(cursor, id, resultstr):
     values = result.fetchall()
     for j in values:
         resultstr += '\t' + str(j[0]) + ':\t\t' + str(j[1]) + '(+' + str(j[2]) + ')\n'
-    resultstr += '\n'
     return resultstr
 
 
@@ -106,7 +105,7 @@ async def highscorehis(session: CommandSession):
         resultstr += '活动名称: ' + str(j[1]) + '\n类型: ' + typename[j[2]] + \
                     '\n开始时间: ' + str(j[3]) + '\n结束时间: ' + str(j[4]) +\
                      '\n折返时间: ' + str(j[5]) + '\n'+\
-                     '=======================\n'+ '\t档线\t\t分数\n'
+                     '====================\n'+ '\t档线\t\t分数\n'
         resultstr = checkhs(sqlcursor, j[0], resultstr)
     await session.send(resultstr)
 
@@ -126,5 +125,4 @@ def checkhs(cursor, id, resultstr):
     values = result.fetchall()
     for j in values:
         resultstr += '\t' + str(j[0]) + ':\t \t' + str(j[1]) + '\n'
-    resultstr += '\n'
     return resultstr

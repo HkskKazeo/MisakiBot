@@ -7,7 +7,7 @@ import asyncio
 
 
 # 档线更新;预测更新
-@nonebot.scheduler.scheduled_job('cron', minute='18,48')
+@nonebot.scheduler.scheduled_job('cron', minute='*')
 async def _():
     trycount = 0
     while trycount < 5:
@@ -26,11 +26,25 @@ async def _():
         print('event_read_failed')
         return
     print("event_read_success")
-    time = datetime.strptime(json[-1]['schedule']['endDate'], "%Y-%m-%dT%H:%M:%S+09:00")
+    #time = datetime.strptime(json[-1]['schedule']['endDate'], "%Y-%m-%dT%H:%M:%S+09:00")
     sqlconn = sqlite3.connect('Misaki.db')
     cursor = sqlconn.cursor()
-    if json[-1]['type'] == 3 or json[-1]['type'] == 4:
 
+    if json[-1]['type'] == 3 or json[-1]['type'] == 4:
+        # 检查api数据更新时间
+        result = cursor.execute("SELECT Value FROM GlobalVars where VarName = ?", ('update_time',))
+        timerst = result.fetchall()
+        str_summaries = 'https://api.matsurihi.me/mltd/v1/events/' + str(json[-1]['id'])\
+                        +'/rankings/summaries/eventPoint'
+        async with aiohttp.request('GET', str_summaries) as resp:
+            if resp.status != 200:
+                return
+            jsonsum = await resp.json()
+            if len(timerst) <= 0 or timerst[0][0] == jsonsum[-1]['updateTime']:
+                print('nothing_updated')
+                return
+        cursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (jsonsum[-1]['updateTime'], 'update_time'))
+        sqlconn.commit()
         eventlength, boostlength = check_eventinfo(sqlconn, cursor, json[-1])
 
         # 更新pt档线
@@ -178,8 +192,8 @@ def dbwrite_event(sqlconn, id, rank, json_rank):
 # 创建档线查询字符串
 def generate_ptstr(sqlconn, sqlcursor, values, name):
     if len(values) > 0:
-        str_ptnew = '活动名称: ' + name + '\n更新时间: ' + str(values[0][2]) + '(日本时间)' \
-                    '\n已经过: ' + str(values[0][3]) + '小时\n=======================\n'+ '\t档线\t\t分数\n'
+        str_ptnew = '活动名称: ' + name + '\n更新时间: ' + str(values[0][2]) +\
+                    '\n已经过: ' + str(values[0][3]) + '小时\n====================\n'+ '\t档线\t\t分数\n'
         for j in values:
             str_ptnew += '\t' + str(j[1]) + '\t \t' + str(j[4]) + '(+' + str(j[5]) + ')\n'
         sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (str_ptnew, 'str_ptnew'))
@@ -230,7 +244,7 @@ def dbwrite_hs(sqlconn, id, rank, json_rank):
 def generate_hsstr(sqlconn, sqlcursor, values, name):
     if len(values) > 0:
         str_ptnew = '活动名称: ' + name + '\n更新时间: ' + str(values[0][2]) + ' (日本时间)'\
-                    '\n已经过: ' + str(values[0][3]) + '小时\n=======================\n'+ '\t档线\t\t分数\n'
+                    '\n已经过: ' + str(values[0][3]) + '小时\n====================\n'+ '\t档线\t\t分数\n'
         for j in values:
             str_ptnew += '\t' + str(j[1]) + '\t \t' + str(j[4]) + '\n'
         sqlcursor.execute('Update GlobalVars SET Value = ? where VarName = ?', (str_ptnew, 'str_hsnew'))
